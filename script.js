@@ -11,52 +11,45 @@ function impostaDataMinimaPrenotazione() {
     if (!dataOraInput) return;
 
     const adesso = new Date();
-    
-    // Calcoliamo il limite di 60 minuti di anticipo
     const dataMinimaPreavviso = new Date(adesso.getTime() + MINIMUM_ADVANCE_MINUTES * 60 * 1000);
-    
-    // Orario di apertura di oggi (20:30)
-    const aperturaOggi = new Date(adesso.getFullYear(), adesso.getMonth(), adesso.getDate(), FIRST_VALID_BOOKING_HOUR, FIRST_VALID_BOOKING_MINUTE, 0, 0);
-    
-    // Se l'orario attuale + 60 min ha già superato le 20:30, usiamo quello, altrimenti la base di partenza per oggi sono le 20:30
-    let dataFinaleSoglia = dataMinimaPreavviso > aperturaOggi ? dataMinimaPreavviso : aperturaOggi;
+    const aperturaOggi = new Date(
+        adesso.getFullYear(),
+        adesso.getMonth(),
+        adesso.getDate(),
+        FIRST_VALID_BOOKING_HOUR,
+        FIRST_VALID_BOOKING_MINUTE,
+        0,
+        0
+    );
 
-    // Formattiamo per l'input HTML (fuso orario italiano garantito)
-    const opzioni = { timeZone: 'Europe/Rome', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' };
-    const formattatore = new Intl.DateTimeFormat('it-IT', opzioni);
-    const parti = formattatore.formatToParts(dataFinaleSoglia);
+    const dataFinaleSoglia = dataMinimaPreavviso > aperturaOggi ? dataMinimaPreavviso : aperturaOggi;
 
-    const map = {};
-    parti.forEach(p => map[p.type] = p.value);
+    const formatoDatetimeLocal = `${dataFinaleSoglia.getFullYear()}-${String(dataFinaleSoglia.getMonth() + 1).padStart(2, '0')}-${String(dataFinaleSoglia.getDate()).padStart(2, '0')}T${String(dataFinaleSoglia.getHours()).padStart(2, '0')}:${String(dataFinaleSoglia.getMinutes()).padStart(2, '0')}`;
 
-    // Questa è la stringa che rende tutto il passato GRIGIO e non cliccabile
-    const formatoDatetimeLocal = `${map.year}-${map.month}-${map.day}T${map.hour}:${map.minute}`;
-    
     dataOraInput.min = formatoDatetimeLocal;
 
-    // GESTIONE DINAMICA: se l'utente cambia giorno, aggiorniamo il limite orario per non bloccare le date future
-    dataOraInput.addEventListener('change', (e) => {
-        const valoreSelezionato = e.target.value;
-        if (!valoreSelezionato) return;
+    const aggiornaMinPerData = () => {
+        const valore = dataOraInput.value;
+        if (!valore) return;
 
-        const dataSelezionata = parseLocalDateTime(valoreSelezionato);
-        const oggiSenzaOrario = new Date(adesso.getFullYear(), adesso.getMonth(), adesso.getDate(), 0, 0, 0, 0);
-        const giornoSelezionatoSenzaOrario = new Date(dataSelezionata.getFullYear(), dataSelezionata.getMonth(), dataSelezionata.getDate(), 0, 0, 0, 0);
+        const dataSelezionata = parseLocalDateTime(valore);
+        if (!dataSelezionata) return;
 
-        // Se l'utente si sposta su un giorno successivo, l'orario minimo deve basarsi sulle 20:30 di quel giorno specifico
-        if (giornoSelezionatoSenzaOrario > oggiSenzaOrario) {
+        const oggi = new Date(adesso.getFullYear(), adesso.getMonth(), adesso.getDate());
+        const giornoSelezionato = new Date(dataSelezionata.getFullYear(), dataSelezionata.getMonth(), dataSelezionata.getDate());
+
+        if (giornoSelezionato > oggi) {
             const anno = dataSelezionata.getFullYear();
             const mese = String(dataSelezionata.getMonth() + 1).padStart(2, '0');
             const giorno = String(dataSelezionata.getDate()).padStart(2, '0');
-            const oraMin = String(FIRST_VALID_BOOKING_HOUR).padStart(2, '0');
-            const minMin = String(FIRST_VALID_BOOKING_MINUTE).padStart(2, '0');
-            
-            e.target.min = `${anno}-${mese}-${giorno}T${oraMin}:${minMin}`;
+            dataOraInput.min = `${anno}-${mese}-${giorno}T${String(FIRST_VALID_BOOKING_HOUR).padStart(2, '0')}:${String(FIRST_VALID_BOOKING_MINUTE).padStart(2, '0')}`;
         } else {
-            // Se torna a oggi, riapplichiamo la restrizione iniziale restrittiva
-            e.target.min = formatoDatetimeLocal;
+            dataOraInput.min = formatoDatetimeLocal;
         }
-    });
+    };
+
+    dataOraInput.addEventListener('change', aggiornaMinPerData);
+    dataOraInput.addEventListener('input', aggiornaMinPerData);
 }
 
 // =========================================================================
@@ -131,20 +124,12 @@ async function readErrorMessage(response) {
 // Esegue il blocco grigio del calendario appena la pagina è caricata
 document.addEventListener('DOMContentLoaded', impostaDataMinimaPrenotazione);
 
-// Rimuove l'errore non appena l'utente corregge il campo
-document.getElementById('dataOra').addEventListener('input', (e) => {
-    e.target.setCustomValidity('');
-});
-
 // Gestore invio form
 document.getElementById('bookingForm').addEventListener('submit', async (e) => {
     e.preventDefault();
 
     const submitBtn = document.getElementById('submitBtn');
     const dataOraInput = document.getElementById('dataOra');
-
-    // Resettiamo l'errore per consentire invii successivi senza blocchi a monte del browser
-    dataOraInput.setCustomValidity('');
 
     const datiPrenotazione = {
         nome: document.getElementById('nome').value,
@@ -161,6 +146,7 @@ document.getElementById('bookingForm').addEventListener('submit', async (e) => {
         return;
     }
 
+    dataOraInput.setCustomValidity('');
     submitBtn.innerText = 'Generazione prenotazione...';
     submitBtn.disabled = true;
 
