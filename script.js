@@ -17,7 +17,7 @@ document.getElementById('bookingForm').addEventListener('submit', async (e) => {
 
     try {
         // 3. Invia i dati al tuo server locale (in ascolto sulla porta 3000)
-        const response = await fetch('https://rues45prenotazioni-backend.onrender.com/api/prenota', {
+        const response = await fetch('https://rues45prenotazioni-backend-v6vi.onrender.com/api/prenota', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
