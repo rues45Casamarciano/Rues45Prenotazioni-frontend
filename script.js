@@ -1,3 +1,32 @@
+// Funzione per disabilitare le date passate nel selettore del frontend
+function impostaDataMinimaPrenotazione() {
+    const dataOraInput = document.getElementById('dataOra');
+    if (!dataOraInput) return;
+
+    const MINUTI_ANTICIPO_MINIMO = 60; // Stesso margine del backend
+    
+    // Otteniamo la data corrente
+    const adesso = new Date();
+    
+    // Aggiungiamo i 60 minuti di anticipo minimo
+    const dataMinima = new Date(adesso.getTime() + MINUTI_ANTICIPO_MINIMO * 60 * 1000);
+
+    // Formattiamo la data nel formato richiesto dall'input datetime-local (YYYY-MM-DDTHH:MM)
+    const year = dataMinima.getFullYear();
+    const month = String(dataMinima.getMonth() + 1).padStart(2, '0');
+    const day = String(dataMinima.getDate()).padStart(2, '0');
+    const hours = String(dataMinima.getHours()).padStart(2, '0');
+    const minutes = String(dataMinima.getMinutes()).padStart(2, '0');
+
+    const formatoDatetimeLocal = `${year}-${month}-${day}T${hours}:${minutes}`;
+
+    // Impostiamo l'attributo min sul selettore HTML
+    dataOraInput.min = formatoDatetimeLocal;
+}
+
+// Eseguiamo la funzione al caricamento della pagina
+document.addEventListener('DOMContentLoaded', impostaDataMinimaPrenotazione);
+
 document.getElementById('bookingForm').addEventListener('submit', async (e) => {
     // 1. Impedisce alla pagina di ricaricarsi quando si preme il pulsante
     e.preventDefault();
