@@ -1,0 +1,310 @@
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600;700&display=swap');
+
+/* Impostazione di base per distribuire i blocchi in verticale */
+html, body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: 'Montserrat', sans-serif;
+    background-color: #0a0a0a;
+    background-image: linear-gradient(rgba(0, 0, 0, 0.75), rgba(0, 0, 0, 0.9)), url('imgs/bg.jpg');
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+    display: flex;
+    flex-direction: column; /* Banner in alto, contenuto al centro, footer in basso */
+}
+
+/* 1. STILE BANNER (HEADER) */
+.main-banner {
+    background-color: rgba(0, 0, 0, 0.9);
+    border-bottom: 1px solid #d4af37;
+    padding: 15px 0;
+    text-align: center;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+}
+
+.main-banner img {
+    height: 65px; /* Altezza elegante per il logo */
+    width: auto;
+}
+
+/* 2. AREA CENTRALE (ZONA FORM) */
+.main-content {
+    flex: 1 0 auto; /* Spinge il footer in fondo se c'è spazio libero */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 40px 20px;
+    box-sizing: border-box;
+}
+
+.form-container {
+    background: rgba(26, 26, 26, 0.95);
+    padding: 40px 30px;
+    border-radius: 16px;
+    border: 1px solid #d4af37;
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.7);
+    max-width: 450px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+h1 {
+    margin-top: 0;
+    font-size: 24px;
+    font-weight: 700;
+    color: #ffffff;
+    text-align: center;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+}
+
+h1 span {
+    color: #d4af37;
+}
+
+.form-container p {
+    font-size: 13px;
+    color: #aaaaaa;
+    text-align: center;
+    margin-bottom: 30px;
+    line-height: 1.6;
+}
+
+.form-group {
+    margin-bottom: 22px;
+}
+
+label {
+    display: block;
+    font-size: 12px;
+    font-weight: 600;
+    margin-bottom: 8px;
+    color: #d4af37;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+input {
+    width: 100%;
+    padding: 12px 15px;
+    background: #262626;
+    border: 1px solid #444444;
+    border-radius: 8px;
+    box-sizing: border-box;
+    font-size: 14px;
+    color: #ffffff;
+    font-family: 'Montserrat', sans-serif;
+    transition: all 0.3s ease;
+}
+
+input:focus {
+    border-color: #d4af37;
+    background: #333333;
+    outline: none;
+    box-shadow: 0 0 8px rgba(212, 175, 55, 0.2);
+}
+
+input[type="datetime-local"]::-webkit-calendar-picker-indicator {
+    filter: invert(1);
+}
+
+button {
+    width: 100%;
+    padding: 15px;
+    background-color: #d4af37;
+    color: #000000;
+    border: none;
+    border-radius: 8px;
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin-top: 10px;
+}
+
+button:hover {
+    background-color: #f3cf65;
+    box-shadow: 0 5px 15px rgba(212, 175, 55, 0.4);
+    transform: translateY(-1px);
+}
+
+button:disabled {
+    background-color: #555555;
+    color: #888888;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+/* 3. STILE FOOTER MULTI-COLONNA (Riferimento image_36cf07.png) */
+.main-footer {
+    flex-shrink: 0;
+    background-color: #000000;
+    border-top: 1px solid #1a1a1a;
+    padding: 40px 20px 20px 20px;
+    color: #ffffff;
+}
+
+.footer-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 30px;
+}
+
+.footer-col {
+    flex: 1;
+    min-width: 220px;
+}
+
+.footer-logo {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.footer-logo img {
+    height: 70px;
+    width: auto;
+}
+
+.footer-col h3 {
+    color: #d4af37; /* Titoli sezioni in oro */
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    margin-bottom: 15px;
+    text-transform: uppercase;
+}
+
+.footer-col p {
+    color: #cccccc;
+    font-size: 13px;
+    line-height: 1.8;
+    margin: 0 0 10px 0;
+    text-align: left; /* Allineato a sinistra come l'originale */
+}
+
+.footer-col .cap {
+    color: #888888;
+}
+
+.footer-col .time {
+    color: #ffffff;
+    font-weight: 600;
+    display: inline-block;
+}
+
+.social-icons {
+    display: flex;
+    gap: 15px; 
+    margin-top: 12px;
+}
+
+.social-icons a {
+    color: #ffffff;
+    font-size: 16px;
+    text-decoration: none;
+    width: 40px;
+    height: 40px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid #333333; 
+    border-radius: 50%;
+    background-color: rgba(255, 255, 255, 0.02); /* Sfondo impercettibile per dare corpo */
+    transition: all 0.3s ease-in-out;
+}
+
+/* Effetto Hover in perfetto stile Rues 45 Oro */
+.social-icons a:hover {
+    color: #d4af37; 
+    border-color: #d4af37; 
+    background-color: rgba(212, 175, 55, 0.05); /* Riflesso dorato all'interno */
+    transform: translateY(-3px); 
+    box-shadow: 0 4px 12px rgba(212, 175, 55, 0.15);
+}
+
+/* Sbarra finale del copyright */
+.footer-bottom {
+    max-width: 1200px;
+    margin: 40px auto 0 auto;
+    padding-top: 20px;
+    border-top: 1px solid #111111;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 15px;
+}
+
+.footer-bottom p {
+    font-size: 11px;
+    color: #666666;
+    margin: 0;
+}
+
+.footer-links a {
+    color: #aaaaaa;
+    font-size: 11px;
+    text-decoration: none;
+    margin-left: 15px;
+    transition: color 0.2s ease;
+}
+
+.footer-links a:hover {
+    color: #d4af37;
+}
+
+/* Ottimizzazione per smartphone */
+@media (max-width: 768px) {
+    .footer-container {
+        flex-direction: column;
+        text-align: center;
+    }
+    .footer-col p {
+        text-align: center;
+    }
+    .footer-bottom {
+        flex-direction: column;
+        text-align: center;
+    }
+    .footer-links a {
+        margin: 0 8px;
+    }
+}
+
+/* STILE LINK COLONNA CONTATTI */
+.contact-link {
+    color: #cccccc; /* Mantiene il colore grigio chiaro originale del testo */
+    text-decoration: none; /* Rimuove la sottolineatura */
+    transition: color 0.2s ease-in-out;
+    display: inline-block;
+}
+
+/* Icone all'interno dei contatti */
+.contact-link i {
+    color: #d4af37; /* Le icone (mappa, telefono, busta, whatsapp) saranno subito color oro */
+    margin-right: 8px; /* Spazio tra l'icona e il testo successivo */
+    width: 16px; /* Allinea verticalmente le icone tra loro */
+    text-align: center;
+    transition: transform 0.2s ease;
+}
+
+/* Effetto quando l'utente passa il mouse sopra il contatto o l'icona */
+.contact-link:hover {
+    color: #ffffff; /* Il testo si illumina diventando bianco */
+}
+
+.contact-link:hover i {
+    transform: scale(1.15); /* L'iconcina si ingrandisce leggermente al passaggio del mouse */
+}

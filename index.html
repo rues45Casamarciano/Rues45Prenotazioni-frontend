@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rues 45 Wine Garden - Prenotazioni</title>
+    <link rel="icon" type="image/png" href="favicon/favicon-96x96.png" sizes="96x96" />
+    <link rel="icon" type="image/svg+xml" href="favicon/favicon.svg" />
+    <link rel="shortcut icon" href="favicon/favicon.ico" />
+    <link rel="apple-touch-icon" sizes="180x180" href="favicon/apple-touch-icon.png" />
+    <link rel="manifest" href="favicon/site.webmanifest" />
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <header class="main-banner">
+        <div class="banner-content">
+            <img src="imgs/logo.jpeg" alt="Rues 45 Logo">
+        </div>
+    </header>
+
+    <div class="main-content">
+        <div class="form-container">
+            <h1>PRENOTAZIONI <span>TAVOLI</span></h1>
+            <p>Compila i campi sottostanti. Riceverai istantaneamente il tuo biglietto digitale munito di QR Code da mostrare all'ingresso.</p>
+            
+            <form id="bookingForm">
+                <div class="form-group">
+                    <label for="nome">Nome</label>
+                    <input type="text" id="nome" name="nome" placeholder="Es. Mario" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="cognome">Cognome</label>
+                    <input type="text" id="cognome" name="cognome" placeholder="Es. Rossi" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="telefono">Numero di Telefono</label>
+                    <input type="tel" id="telefono" name="telefono" placeholder="Es. 3331234567" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="dataOra">Data e Ora della prenotazione</label>
+                    <input type="datetime-local" id="dataOra" name="dataOra" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="persone">Numero di persone</label>
+                    <input type="number" id="persone" name="persone" min="1" max="20" placeholder="Es. 4" required>
+                </div>
+
+                <button type="submit" id="submitBtn">Invia Prenotazione</button>
+            </form>
+        </div>
+    </div>
+
+    <footer class="main-footer">
+        <div class="footer-container">
+            <div class="footer-col footer-logo">
+                <img src="imgs/logo.jpeg" alt="Rues 45 Logo">
+            </div>
+
+            <div class="footer-col">
+                <h3>CONTATTI</h3>
+                <p>
+                    <a href="https://goo.gl/maps/gd5CASHJwZ4b5LRP6" target="_blank" class="contact-link">
+                        <i class="fa-solid fa-location-dot"></i> Via San Clemente, snc<br>
+                        <span class="cap">80032, Casamarciano (NA)</span>
+                    </a>
+                </p>
+                
+                <p>
+                    <a href="tel:+393289544176" class="contact-link">
+                        <i class="fa-solid fa-phone"></i> 3289544176
+                    </a> 
+                    | 
+                    <a href="tel:+393277682936" class="contact-link">
+                        3277682936
+                    </a>
+                </p>
+                
+                <p>
+                    <a href="mailto:russo.carmin91@gmail.com" class="contact-link">
+                        <i class="fa-solid fa-envelope"></i> russo.carmin91@gmail.com
+                    </a>
+                </p>
+                
+                <p>
+                    <a href="https://wa.me/393289544176" target="_blank" class="contact-link">
+                        <i class="fa-brands fa-whatsapp"></i> Whatsapp
+                    </a>
+                </p>
+            </div>
+
+            <div class="footer-col">
+                <h3>ORARI</h3>
+                <p>Lunedì – Martedì – Mercoledì – Giovedì – Venerdì – Sabato – Domenica</p>
+                <p>
+                    <a href="#" class="contact-link time">
+                        <i class="fa-solid fa-clock"></i> 18:00 - 01:30
+                    </a>
+                </p>
+            </div>
+
+            <div class="footer-col">
+                <h3>SOCIAL</h3>
+                <div class="social-icons">
+                    <a href="https://www.facebook.com/rues45/?locale=it_IT" target="_blank" title="Facebook">
+                        <i class="fa-brands fa-facebook-f"></i>
+                    </a>
+                    <a href="https://instagram.com/rues_45?igshid=YjNmNGQ3MDY=" target="_blank" title="Instagram">
+                        <i class="fa-brands fa-instagram"></i>
+                    </a>
+                    <a href="https://goo.gl/maps/gd5CASHJwZ4b5LRP6" target="_blank" title="Google">
+                        <i class="fa-brands fa-google"></i>
+                    </a>
+                </div>
+            </div> </div>
+
+        <div class="footer-bottom">
+            <p>Copyright &copy; 2023 - RUES 45 - P.IVA 08946761213</p>
+            <div class="footer-links">
+                <a href="https://rues45.it/privacy-policy/">Privacy Policy</a>
+                <a href="http://cookie-policy-eu.com">Cookie Policy</a>
+            </div>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>
