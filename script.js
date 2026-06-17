@@ -1,52 +1,98 @@
-// Funzione per disabilitare le date passate nel selettore del frontend
-function impostaDataMinimaPrenotazione() {
-    const dataOraInput = document.getElementById('dataOra');
-    if (!dataOraInput) return;
 
-    const MINUTI_ANTICIPO_MINIMO = 60; // Stesso margine del backend
-    
-    // Otteniamo la data corrente
-    const adesso = new Date();
-    
-    // Aggiungiamo i 60 minuti di anticipo minimo
-    const dataMinima = new Date(adesso.getTime() + MINUTI_ANTICIPO_MINIMO * 60 * 1000);
+const MINIMUM_ADVANCE_MINUTES = 60;
+const FIRST_VALID_BOOKING_HOUR = 20;
+const FIRST_VALID_BOOKING_MINUTE = 30;
+const BOOKING_API_URL = 'https://rues45prenotazioni-backend-v6vi.onrender.com/api/prenota';
 
-    // Formattiamo la data nel formato richiesto dall'input datetime-local (YYYY-MM-DDTHH:MM)
-    const year = dataMinima.getFullYear();
-    const month = String(dataMinima.getMonth() + 1).padStart(2, '0');
-    const day = String(dataMinima.getDate()).padStart(2, '0');
-    const hours = String(dataMinima.getHours()).padStart(2, '0');
-    const minutes = String(dataMinima.getMinutes()).padStart(2, '0');
+function parseLocalDateTime(value) {
+    if (!value) return null;
 
-    const formatoDatetimeLocal = `${year}-${month}-${day}T${hours}:${minutes}`;
+    const [datePart, timePart] = value.split('T');
+    if (!datePart || !timePart) return null;
 
-    // Impostiamo l'attributo min sul selettore HTML
-    dataOraInput.min = formatoDatetimeLocal;
+    const [year, month, day] = datePart.split('-').map(Number);
+    const [hour, minute] = timePart.split(':').map(Number);
+
+    return new Date(year, month - 1, day, hour, minute, 0, 0);
 }
 
-// Eseguiamo la funzione al caricamento della pagina
-document.addEventListener('DOMContentLoaded', impostaDataMinimaPrenotazione);
+function validateBookingDateTime(value) {
+    const selectedDateTime = parseLocalDateTime(value);
+    if (!selectedDateTime) {
+        return 'Seleziona una data e un orario validi.';
+    }
+
+    const now = new Date();
+    const minimumAllowed = new Date(now.getTime() + MINIMUM_ADVANCE_MINUTES * 60 * 1000);
+
+    if (selectedDateTime < now) {
+        return 'La data e l\'orario selezionati sono nel passato.';
+    }
+
+    if (selectedDateTime < minimumAllowed) {
+        return `È necessario un anticipo minimo di ${MINIMUM_ADVANCE_MINUTES} minuti.`;
+    }
+
+    const isBeforeFirstValidSlot =
+        selectedDateTime.getHours() < FIRST_VALID_BOOKING_HOUR ||
+        (selectedDateTime.getHours() === FIRST_VALID_BOOKING_HOUR &&
+            selectedDateTime.getMinutes() < FIRST_VALID_BOOKING_MINUTE);
+
+    if (isBeforeFirstValidSlot) {
+        return `La prima prenotazione valida è disponibile dalle ${String(FIRST_VALID_BOOKING_HOUR).padStart(2, '0')}:${String(FIRST_VALID_BOOKING_MINUTE).padStart(2, '0')}.`;
+    }
+
+    return '';
+}
+
+async function readErrorMessage(response) {
+    const contentType = response.headers.get('content-type') || '';
+
+    if (contentType.includes('application/json')) {
+        try {
+            const data = await response.json();
+            return data.message || data.error || 'Errore durante la prenotazione.';
+        } catch (error) {
+            return 'Errore durante la prenotazione.';
+        }
+    }
+
+    try {
+        const text = await response.text();
+        return text || 'Errore durante la prenotazione.';
+    } catch (error) {
+        return 'Errore durante la prenotazione.';
+    }
+}
 
 document.getElementById('bookingForm').addEventListener('submit', async (e) => {
-    // 1. Impedisce alla pagina di ricaricarsi quando si preme il pulsante
     e.preventDefault();
 
     const submitBtn = document.getElementById('submitBtn');
-    submitBtn.innerText = "Generazione prenotazione...";
-    submitBtn.disabled = true;
+    const dataOraInput = document.getElementById('dataOra');
 
-    // 2. Raccoglie i dati inseriti dall'utente nel Form
     const datiPrenotazione = {
         nome: document.getElementById('nome').value,
         cognome: document.getElementById('cognome').value,
         telefono: document.getElementById('telefono').value,
-        dataOra: document.getElementById('dataOra').value,
+        dataOra: dataOraInput.value,
         persone: document.getElementById('persone').value
     };
 
+    const validationMessage = validateBookingDateTime(datiPrenotazione.dataOra);
+    if (validationMessage) {
+        dataOraInput.setCustomValidity(validationMessage);
+        dataOraInput.reportValidity();
+        return;
+    }
+
+    dataOraInput.setCustomValidity('');
+
+    submitBtn.innerText = 'Generazione prenotazione...';
+    submitBtn.disabled = true;
+
     try {
-        // 3. Invia i dati al tuo server locale (in ascolto sulla porta 3000)
-        const response = await fetch('https://rues45prenotazioni-backend-v6vi.onrender.com/api/prenota', {
+        const response = await fetch(BOOKING_API_URL, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -55,29 +101,23 @@ document.getElementById('bookingForm').addEventListener('submit', async (e) => {
         });
 
         if (!response.ok) {
-            throw new Error("Errore durante la prenotazione");
+            const message = await readErrorMessage(response);
+            throw new Error(message);
         }
 
-        // 4. Riceve il file PDF dal server e lo trasforma in un "Blob" (oggetto binario)
         const pdfBlob = await response.blob();
-        
-        // 5. Crea un link temporaneo nel browser per scaricare il PDF in automatico
         const url = window.URL.createObjectURL(pdfBlob);
         const a = document.createElement('a');
         a.href = url;
         a.download = `Prenotazione_${datiPrenotazione.nome}_${datiPrenotazione.cognome}.pdf`;
         document.body.appendChild(a);
         a.click();
-        
-        // Pulisce la memoria del browser
         a.remove();
         window.URL.revokeObjectURL(url);
-
     } catch (error) {
-        alert("Si è verificato un errore: " + error.message);
+        alert(error.message || 'Si è verificato un errore durante la prenotazione.');
     } finally {
-        // Ripristina il pulsante
-        submitBtn.innerText = "Invia Prenotazione";
+        submitBtn.innerText = 'Invia Prenotazione';
         submitBtn.disabled = false;
     }
 });
