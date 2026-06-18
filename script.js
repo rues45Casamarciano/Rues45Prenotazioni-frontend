@@ -1,6 +1,6 @@
 /**
  * @file Booking form client-side orchestration and validation logic.
- * @version 1.1.1
+ * @version 1.1.2
  */
 
 const MINIMUM_ADVANCE_MINUTES = 60;
@@ -34,9 +34,9 @@ function formatDateYYYYMMDD(date) {
  * @returns {void}
  */
 function inizializzaGestioneCapienzaDinamica() {
-    // CORREZIONE ID: Allineati con gli elementi reali del form HTML
-    const dataGiornoInput = document.getElementById('dataPrenotazione');
-    const dataOraSelect = document.getElementById('orarioTavolo');
+    // Allineamento perfetto con gli ID del tuo HTML
+    const dataGiornoInput = document.getElementById('dataGiorno');
+    const dataOraSelect = document.getElementById('dataOraSelect');
     const personeInput = document.getElementById('persone');
 
     if (!dataGiornoInput || !dataOraSelect || !personeInput) {
@@ -44,7 +44,7 @@ function inizializzaGestioneCapienzaDinamica() {
         return;
     }
 
-    // Imposta il vincolo 'min' sul giorno corrente per impedire la selezione di date passate
+    // Imposta il vincolo 'min' sul giorno corrente per impedire date passate
     const oraAttuale = new Date();
     dataGiornoInput.min = formatDateYYYYMMDD(oraAttuale);
 
@@ -206,15 +206,14 @@ async function readErrorMessage(response) {
 
 document.addEventListener('DOMContentLoaded', inizializzaGestioneCapienzaDinamica);
 
-// Nota: Assicurati che nel tuo file HTML il tag <form> abbia id="bookingForm"
 const bookingForm = document.getElementById('bookingForm');
 if (bookingForm) {
     bookingForm.addEventListener('submit', async (e) => {
         e.preventDefault();
 
         const submitBtn = document.getElementById('submitBtn');
-        const dataGiornoInput = document.getElementById('dataPrenotazione');
-        const dataOraSelect = document.getElementById('orarioTavolo');
+        const dataGiornoInput = document.getElementById('dataGiorno');
+        const dataOraSelect = document.getElementById('dataOraSelect');
         
         if (!submitBtn || !dataGiornoInput || !dataOraSelect) return;
 
