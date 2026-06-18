@@ -1,6 +1,6 @@
 /**
  * @file Booking form client-side orchestration and validation logic.
- * @version 1.1.0
+ * @version 1.1.1
  */
 
 const MINIMUM_ADVANCE_MINUTES = 60;
@@ -34,19 +34,23 @@ function formatDateYYYYMMDD(date) {
  * @returns {void}
  */
 function inizializzaGestioneCapienzaDinamica() {
-    const dataGiornoInput = document.getElementById('dataGiorno');
-    const dataOraSelect = document.getElementById('dataOraSelect');
+    // CORREZIONE ID: Allineati con gli elementi reali del form HTML
+    const dataGiornoInput = document.getElementById('dataPrenotazione');
+    const dataOraSelect = document.getElementById('orarioTavolo');
     const personeInput = document.getElementById('persone');
 
-    if (!dataGiornoInput || !dataOraSelect || !personeInput) return;
+    if (!dataGiornoInput || !dataOraSelect || !personeInput) {
+        console.error("Errore: Uno o più elementi del form non sono stati trovati nel DOM.");
+        return;
+    }
 
-    // Imposta il vincolo 'min' sul giorno corrente per impedire date passate
+    // Imposta il vincolo 'min' sul giorno corrente per impedire la selezione di date passate
     const oraAttuale = new Date();
     dataGiornoInput.min = formatDateYYYYMMDD(oraAttuale);
 
     const aggiornaSlotOrariDisponibili = async () => {
         const giornoSelezionato = dataGiornoInput.value;
-        const numeroPersone = personeInput.value;
+        const numeroPersone = parseInt(personeInput.value, 10) || 2;
 
         // Se l'utente rimuove o non seleziona un giorno, resettiamo lo stato della select
         if (!giornoSelezionato) {
@@ -107,7 +111,7 @@ function inizializzaGestioneCapienzaDinamica() {
                     opzione.text = `${ora} (Esaurito - Rimasti ${info.postiRimasti} posti)`;
                     opzione.disabled = true;
                 } else {
-                    opzione.text = `${ora} (Disponibile)`;
+                    opzione.text = `${ora} (${info.postiRimasti} posti rimasti)`;
                 }
 
                 dataOraSelect.appendChild(opzione);
@@ -202,22 +206,21 @@ async function readErrorMessage(response) {
 
 document.addEventListener('DOMContentLoaded', inizializzaGestioneCapienzaDinamica);
 
+// Nota: Assicurati che nel tuo file HTML il tag <form> abbia id="bookingForm"
 const bookingForm = document.getElementById('bookingForm');
 if (bookingForm) {
     bookingForm.addEventListener('submit', async (e) => {
         e.preventDefault();
 
         const submitBtn = document.getElementById('submitBtn');
-        const dataGiornoInput = document.getElementById('dataGiorno');
-        const dataOraSelect = document.getElementById('dataOraSelect');
+        const dataGiornoInput = document.getElementById('dataPrenotazione');
+        const dataOraSelect = document.getElementById('orarioTavolo');
         
         if (!submitBtn || !dataGiornoInput || !dataOraSelect) return;
 
         const giorno = dataGiornoInput.value;
         const ora = dataOraSelect.value;
 
-        // COMPOSIZIONE: Uniamo la data e l'orario nell'ISO string standard (YYYY-MM-DDTHH:mm:00)
-        // per non rompere o alterare la decodifica e la convalida del backend.
         const datiPrenotazione = {
             nome: document.getElementById('nome').value,
             cognome: document.getElementById('cognome').value,
