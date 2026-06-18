@@ -1,106 +1,128 @@
 /**
  * @file Booking form client-side orchestration and validation logic.
- * @version 1.0.0
+ * @version 1.1.0
  */
 
 const MINIMUM_ADVANCE_MINUTES = 60;
 const FIRST_VALID_BOOKING_HOUR = 20;
 const FIRST_VALID_BOOKING_MINUTE = 30;
 const BOOKING_API_URL = 'https://rues45prenotazioni-backend-v6vi.onrender.com/api/prenota';
+const API_VERIFICA_GIORNO = 'https://rues45prenotazioni-backend-v6vi.onrender.com/api/verifica-giorno';
 
 // =========================================================================
 // DATE/TIME UTILITIES
 // =========================================================================
 
 /**
- * Parses an HTML5 datetime-local string input into a standard Date object.
- * @param {string} value - The datetime-local string (YYYY-MM-DDTHH:mm).
- * @returns {Date|null} The parsed Date object, or null if invalid.
- */
-function parseLocalDateTime(value) {
-    if (!value) return null;
-
-    const [datePart, timePart] = value.split('T');
-    if (!datePart || !timePart) return null;
-
-    const [year, month, day] = datePart.split('-').map(Number);
-    const [hour, minute] = timePart.split(':').map(Number);
-
-    return new Date(year, month - 1, day, hour, minute, 0, 0);
-}
-
-/**
- * Formats a Date object into a standard HTML5 datetime-local compatible string.
+ * Formats a Date object into a standard HTML5 date compatible string.
  * @param {Date} date - The date instance to transform.
- * @returns {string} Formatted string syntax: YYYY-MM-DDTHH:mm.
+ * @returns {string} Formatted string syntax: YYYY-MM-DD.
  */
-function formatLocalDateTime(date) {
+function formatDateYYYYMMDD(date) {
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, '0');
     const day = String(date.getDate()).padStart(2, '0');
-    const hours = String(date.getHours()).padStart(2, '0');
-    const minutes = String(date.getMinutes()).padStart(2, '0');
-    
-    return `${year}-${month}-${day}T${hours}:${minutes}`;
+    return `${year}-${month}-${day}`;
 }
 
 // =========================================================================
-// DYNAMIC CALENDAR MANAGEMENT
+// DYNAMIC CALENDAR MANAGEMENT & ASYNC SEATS CAPACITY
 // =========================================================================
 
 /**
- * Initializes and dynamically mutates the 'min' constraint attribute of the datetime input element.
+ * Initializes and handles live capacity checking when the date or guest number mutates.
  * @returns {void}
  */
-function impostaDataMinimaPrenotazione() {
-    const dataOraInput = document.getElementById('dataOra');
-    if (!dataOraInput) return;
+function inizializzaGestioneCapienzaDinamica() {
+    const dataGiornoInput = document.getElementById('dataGiorno');
+    const dataOraSelect = document.getElementById('dataOraSelect');
+    const personeInput = document.getElementById('persone');
 
-    const now = new Date();
-    const minAdvanceThreshold = new Date(now.getTime() + MINIMUM_ADVANCE_MINUTES * 60 * 1000);
-    const venueOpeningToday = new Date(
-        now.getFullYear(),
-        now.getMonth(),
-        now.getDate(),
-        FIRST_VALID_BOOKING_HOUR,
-        FIRST_VALID_BOOKING_MINUTE,
-        0,
-        0
-    );
+    if (!dataGiornoInput || !dataOraSelect || !personeInput) return;
 
-    const initialMinThreshold = minAdvanceThreshold > venueOpeningToday ? minAdvanceThreshold : venueOpeningToday;
-    const initialMinFormated = formatLocalDateTime(initialMinThreshold);
+    // Imposta il vincolo 'min' sul giorno corrente per impedire date passate
+    const oraAttuale = new Date();
+    dataGiornoInput.min = formatDateYYYYMMDD(oraAttuale);
 
-    dataOraInput.min = initialMinFormated;
+    const aggiornaSlotOrariDisponibili = async () => {
+        const giornoSelezionato = dataGiornoInput.value;
+        const numeroPersone = personeInput.value;
 
-    const handleMinAttributeMutation = () => {
-        const value = dataOraInput.value;
-        if (!value) return;
+        // Se l'utente rimuove o non seleziona un giorno, resettiamo lo stato della select
+        if (!giornoSelezionato) {
+            dataOraSelect.disabled = true;
+            dataOraSelect.innerHTML = '<option value="">Scegli prima un giorno...</option>';
+            return;
+        }
 
-        const selectedDate = parseLocalDateTime(value);
-        if (!selectedDate) return;
+        dataOraSelect.disabled = true;
+        dataOraSelect.innerHTML = '<option value="">Aggiornamento disponibilità...</option>';
 
-        const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
-        const startOfSelectedDay = new Date(selectedDate.getFullYear(), selectedDate.getMonth(), selectedDate.getDate()).getTime();
+        try {
+            const response = await fetch(API_VERIFICA_GIORNO, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ dataGiorno: giornoSelezionato, persone: numeroPersone })
+            });
 
-        if (startOfSelectedDay > startOfToday) {
-            const nextDayOpening = new Date(
-                selectedDate.getFullYear(),
-                selectedDate.getMonth(),
-                selectedDate.getDate(),
-                FIRST_VALID_BOOKING_HOUR,
-                FIRST_VALID_BOOKING_MINUTE,
-                0,
-                0
-            );
-            dataOraInput.min = formatLocalDateTime(nextDayOpening);
-        } else {
-            dataOraInput.min = initialMinFormated;
+            if (!response.ok) throw new Error('Errore risposta server');
+
+            const mappaSlot = await response.json();
+            dataOraSelect.innerHTML = '<option value="">-- Seleziona un orario --</option>';
+
+            const adesso = new Date();
+            const stringaOggiYMD = formatDateYYYYMMDD(adesso);
+
+            for (const [ora, info] of Object.entries(mappaSlot)) {
+                const opzione = document.createElement('option');
+                opzione.value = ora;
+
+                let disabilitatoPerTempo = false;
+
+                // Se la data è oggi, applichiamo il vincolo dei 60 minuti minimi di anticipo
+                if (giornoSelezionato === stringaOggiYMD) {
+                    const [oreSlot, minutiSlot] = ora.split(':').map(Number);
+                    const dataOggettoSlot = new Date(
+                        adesso.getFullYear(),
+                        adesso.getMonth(),
+                        adesso.getDate(),
+                        oreSlot,
+                        minutiSlot,
+                        0,
+                        0
+                    );
+                    
+                    const sogliaMinimaAnticipo = new Date(adesso.getTime() + (MINIMUM_ADVANCE_MINUTES * 60 * 1000));
+                    
+                    if (dataOggettoSlot < sogliaMinimaAnticipo) {
+                        disabilitatoPerTempo = true;
+                    }
+                }
+
+                // Applichiamo i blocchi logici e descrittivi basati sui dati ricevuti
+                if (disabilitatoPerTempo) {
+                    opzione.text = `${ora} (Non più prenotabile)`;
+                    opzione.disabled = true;
+                } else if (!info.disponibilePerGruppo) {
+                    opzione.text = `${ora} (Esaurito - Rimasti ${info.postiRimasti} posti)`;
+                    opzione.disabled = true;
+                } else {
+                    opzione.text = `${ora} (Disponibile)`;
+                }
+
+                dataOraSelect.appendChild(opzione);
+            }
+
+            dataOraSelect.disabled = false;
+
+        } catch (err) {
+            console.error('Errore durante il recupero dei posti:', err);
+            dataOraSelect.innerHTML = '<option value="">Errore nel caricamento orari. Riprova.</option>';
         }
     };
 
-    dataOraInput.addEventListener('change', handleMinAttributeMutation);
-    dataOraInput.addEventListener('input', handleMinAttributeMutation);
+    dataGiornoInput.addEventListener('change', aggiornaSlotOrariDisponibili);
+    personeInput.addEventListener('change', aggiornaSlotOrariDisponibili);
 }
 
 // =========================================================================
@@ -108,15 +130,19 @@ function impostaDataMinimaPrenotazione() {
 // =========================================================================
 
 /**
- * Validates the selected booking timestamp constraint parameters.
- * @param {string} value - The current datetime input value.
+ * Validates the parameters of the selected date and time inputs.
+ * @param {string} giorno - The chosen day (YYYY-MM-DD)
+ * @param {string} ora - The chosen time slot (HH:mm)
  * @returns {string} Validation context error string, empty if execution clears thresholds.
  */
-function validateBookingDateTime(value) {
-    const selectedDateTime = parseLocalDateTime(value);
-    if (!selectedDateTime) {
+function validateBookingFields(giorno, ora) {
+    if (!giorno || !ora) {
         return 'Seleziona una data e un orario validi.';
     }
+
+    const [year, month, day] = giorno.split('-').map(Number);
+    const [hour, minute] = ora.split(':').map(Number);
+    const selectedDateTime = new Date(year, month - 1, day, hour, minute, 0, 0);
 
     const now = new Date();
     const minimumAllowed = new Date(now.getTime() + MINIMUM_ADVANCE_MINUTES * 60 * 1000);
@@ -129,12 +155,9 @@ function validateBookingDateTime(value) {
         return `È necessario un anticipo minimo di ${MINIMUM_ADVANCE_MINUTES} minuti.`;
     }
 
-    const currentHours = selectedDateTime.getHours();
-    const currentMinutes = selectedDateTime.getMinutes();
-
     const isBeforeFirstValidSlot =
-        currentHours < FIRST_VALID_BOOKING_HOUR ||
-        (currentHours === FIRST_VALID_BOOKING_HOUR && currentMinutes < FIRST_VALID_BOOKING_MINUTE);
+        hour < FIRST_VALID_BOOKING_HOUR ||
+        (hour === FIRST_VALID_BOOKING_HOUR && minute < FIRST_VALID_BOOKING_MINUTE);
 
     if (isBeforeFirstValidSlot) {
         return `La prima prenotazione valida è disponibile dalle ${String(FIRST_VALID_BOOKING_HOUR).padStart(2, '0')}:${String(FIRST_VALID_BOOKING_MINUTE).padStart(2, '0')}.`;
@@ -177,7 +200,7 @@ async function readErrorMessage(response) {
 // EVENT LISTENERS & LIFECYCLE INITIALIZATION
 // =========================================================================
 
-document.addEventListener('DOMContentLoaded', impostaDataMinimaPrenotazione);
+document.addEventListener('DOMContentLoaded', inizializzaGestioneCapienzaDinamica);
 
 const bookingForm = document.getElementById('bookingForm');
 if (bookingForm) {
@@ -185,25 +208,32 @@ if (bookingForm) {
         e.preventDefault();
 
         const submitBtn = document.getElementById('submitBtn');
-        const dataOraInput = document.getElementById('dataOra');
-        if (!submitBtn || !dataOraInput) return;
+        const dataGiornoInput = document.getElementById('dataGiorno');
+        const dataOraSelect = document.getElementById('dataOraSelect');
+        
+        if (!submitBtn || !dataGiornoInput || !dataOraSelect) return;
 
+        const giorno = dataGiornoInput.value;
+        const ora = dataOraSelect.value;
+
+        // COMPOSIZIONE: Uniamo la data e l'orario nell'ISO string standard (YYYY-MM-DDTHH:mm:00)
+        // per non rompere o alterare la decodifica e la convalida del backend.
         const datiPrenotazione = {
             nome: document.getElementById('nome').value,
             cognome: document.getElementById('cognome').value,
             telefono: document.getElementById('telefono').value,
-            dataOra: dataOraInput.value,
+            dataOra: `${giorno}T${ora}:00`,
             persone: document.getElementById('persone').value
         };
 
-        const validationMessage = validateBookingDateTime(datiPrenotazione.dataOra);
+        const validationMessage = validateBookingFields(giorno, ora);
         if (validationMessage) {
-            dataOraInput.setCustomValidity(validationMessage);
-            dataOraInput.reportValidity();
+            dataOraSelect.setCustomValidity(validationMessage);
+            dataOraSelect.reportValidity();
             return;
         }
 
-        dataOraInput.setCustomValidity('');
+        dataOraSelect.setCustomValidity('');
         submitBtn.innerText = 'Generazione prenotazione...';
         submitBtn.disabled = true;
 

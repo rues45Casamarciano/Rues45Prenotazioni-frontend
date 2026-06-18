@@ -43,16 +43,23 @@
                 </div>
 
                 <div class="form-group">
-                    <label for="dataOra">Data e Ora della prenotazione</label>
-                    <input type="datetime-local" id="dataOra" name="dataOra" required>
-                    <small style="display:block; margin-top:0.4rem; color:#6b7280;">
-                        Prenotazioni disponibili dalle 20:30 con un anticipo minimo di 60 minuti.
-                    </small>
+                    <label for="persone">Numero di persone</label>
+                    <input type="number" id="persone" name="persone" min="1" max="20" value="2" placeholder="Es. 4" required>
                 </div>
 
                 <div class="form-group">
-                    <label for="persone">Numero di persone</label>
-                    <input type="number" id="persone" name="persone" min="1" max="20" placeholder="Es. 4" required>
+                    <label for="dataGiorno">Data della prenotazione</label>
+                    <input type="date" id="dataGiorno" name="dataGiorno" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="dataOraSelect">Orario del tavolo</label>
+                    <select id="dataOraSelect" name="dataOraSelect" required disabled>
+                        <option value="">Scegli prima un giorno...</option>
+                    </select>
+                    <small style="display:block; margin-top:0.4rem; color:#6b7280;">
+                        Prenotazioni disponibili dalle 20:30 con un anticipo minimo di 60 minuti. Gli orari al completo verranno disabilitati automaticamente.
+                    </small>
                 </div>
 
                 <button type="submit" id="submitBtn">Invia Prenotazione</button>
