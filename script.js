@@ -77,10 +77,13 @@ function inizializzaGestioneCapienzaDinamica() {
             const adesso = new Date();
             const stringaOggiYMD = formatDateYYYYMMDD(adesso);
 
-            for (const [ora, info] of Object.entries(mappaSlot)) {
+            const orariOrdinati = Object.keys(mappaSlot).sort();
+
+            for (const ora of orariOrdinati) {
+                const info = mappaSlot[ora];
                 const opzione = document.createElement('option');
                 opzione.value = ora;
-
+                
                 let disabilitatoPerTempo = false;
 
                 // Se la data è oggi, applichiamo il vincolo dei 60 minuti minimi di anticipo
